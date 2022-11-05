@@ -1,0 +1,71 @@
+version: "3.7"
+
+services:
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: unless-stopped
+    volumes:
+      - ./deployments/rabbitmq/etc/:/etc/rabbitmq/
+      - ./deployments/rabbitmq/data/:/var/lib/rabbitmq/mnesia
+      - ./deployments/rabbitmq/logs/:/var/log/rabbitmq/
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_LOGIN}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - app-network
+
+  producer-api:
+    container_name: producer-api
+    build:
+      context: producer-api
+      dockerfile: ./deployment/dockerfiles/producer.Dockerfile
+    ports:
+      - ${APP_PORT}:${APP_PORT}
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    volumes:
+      - .:/producer-api/
+    networks:
+      - app-network
+
+  consumer:
+    container_name: consumer
+    build:
+      context: consumer
+      dockerfile: ./deployment/dockerfiles/consumer.Dockerfile
+    restart: on-failure
+    depends_on:
+      - rabbitmq
+    networks:
+      - app-network
+
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - portainer-data:/data
+    ports:
+      - 9000:9000
+    networks:
+      - app-network
+
+volumes:
+  portainer-data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+
