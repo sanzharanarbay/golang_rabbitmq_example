@@ -26,7 +26,7 @@ ____
 
 - visit http://localhost:15672/ - (GUI RabbitMQ management ) , (login, password shown in .env file)
 - visit http://localhost:9000/ - Portainer (GUI Docker containers)
-- In portainer open golang container and see the logs , to check message is sent
+- In portainer open producer-api container and see the logs , to check the message delivery status
 - In portainer open consumer and see the logs , to check is consumer handle the message from the queue
 - There are in general 3 .env files, in root directory , also in the consumer and producer-api directories
 ____
